@@ -3,8 +3,13 @@ package multicast
 import "encoding/json"
 
 type HostInfoReceiver struct {
-	Hostname string   `json:"hostname"`
-	IPs      []string `json:"ips"`
+	Version      string   `json:"version"`
+	BuildDate    string   `json:"buildDate"`
+	Revision     string   `json:"revision"`
+	Hostname     string   `json:"hostName"`
+	IPs          []string `json:"ips"`
+	Endpoint     string   `json:"endpoint"`
+	EndpointPort int      `json:"endpointPort"`
 }
 
 type GenericMessage struct {

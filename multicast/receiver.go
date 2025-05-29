@@ -206,36 +206,7 @@ func handleHostInfoSend(ctx context.Context, payload json.RawMessage, addr strin
 	// trigger 기능만 수행
 	log.Println("✅ Received OK message (triggered)")
 
-	type hostInfoSender struct {
-		Hostname string   `json:"hostname"`
-		IPs      []string `json:"ips"`
-	}
-
-	hostname, _ := os.Hostname()
-	ifaces, err := net.Interfaces()
-	if err != nil {
-		return fmt.Errorf("failed to list interfaces: %w", err)
-	}
-
-	var localIPs []string
-	for _, ifaceAddr := range ifaces {
-		addrsI, _ := ifaceAddr.Addrs()
-		for _, a := range addrsI {
-			if ipnet, ok := a.(*net.IPNet); ok && ipnet.IP.To4() != nil {
-				if ipnet.IP.String() == "127.0.0.1" {
-					continue
-				}
-				localIPs = append(localIPs, ipnet.String())
-			}
-		}
-	}
-
-	hostInfo := hostInfoSender{
-		Hostname: hostname,
-		IPs:      localIPs,
-	}
-
-	go SendWithEnvelope(ctx, addr, 1500, "hostinfo", hostInfo)
+	go SendWithEnvelope(ctx, addr, 1500, "hostinfo", payload)
 	return nil
 }
 
