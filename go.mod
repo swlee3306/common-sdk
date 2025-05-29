@@ -1,4 +1,4 @@
-module github.com/flantsdk/commonsdk
+module github.com/swlee3306/commonsdk
 
 go 1.23.0
 
