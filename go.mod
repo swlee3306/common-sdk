@@ -1,4 +1,4 @@
-module github.com/swlee3306/commonsdk
+module github.com/swlee3306/common-sdk
 
 go 1.23.0
 
