@@ -1,7 +1,6 @@
 package multicast
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -11,7 +10,7 @@ import (
 	"time"
 )
 
-type MessageHandler func(ctx context.Context, payload json.RawMessage, addr string) error
+type MessageHandler func(payload json.RawMessage, addr string) error
 
 var handlerRegistry = make(map[string]MessageHandler)
 
@@ -46,7 +45,7 @@ func Init() {
 	hostDataLock.Unlock()
 }
 
-func RunReceivers(cancel context.Context, addr string) error {
+func RunReceivers(addr string) error {
 	if len(handlerRegistry) == 0 {
 		return fmt.Errorf("handler registry is empty — did you forget to call multicast.Init()?")
 	}
@@ -71,13 +70,13 @@ func RunReceivers(cancel context.Context, addr string) error {
 
 		//go RunReceiver(cancel, udpAddr, &iface)
 		log.Printf("Starting receiver on interface: %s [%s]", iface.Name, iface.HardwareAddr)
-		go RunReceiverWithTimeoutCleanup(cancel, udpAddr, &iface, addr)
+		go RunReceiverWithTimeoutCleanup(udpAddr, &iface, addr)
 	}
 
 	return nil
 }
 
-func RunReceiverWithTimeoutCleanup(cancel context.Context, addr *net.UDPAddr, iface *net.Interface, multicastaddr string) error {
+func RunReceiverWithTimeoutCleanup(addr *net.UDPAddr, iface *net.Interface, multicastaddr string) error {
 	conn, err := net.ListenMulticastUDP("udp", iface, addr)
 	if err != nil {
 		return fmt.Errorf("failed to listen on multicast: %w", err)
@@ -110,9 +109,6 @@ func RunReceiverWithTimeoutCleanup(cancel context.Context, addr *net.UDPAddr, if
 		defer ticker.Stop()
 		for {
 			select {
-			case <-cancel.Done():
-				log.Println("Timeout cleanup goroutine exiting due to cancel")
-				return
 			case <-ticker.C:
 				mu.Lock()
 				for id, entry := range cache {
@@ -129,9 +125,6 @@ func RunReceiverWithTimeoutCleanup(cancel context.Context, addr *net.UDPAddr, if
 
 	for {
 		select {
-		case <-cancel.Done():
-			log.Println("Receiver exiting due to cancel")
-			return nil
 		default:
 			conn.SetReadDeadline(time.Now().Add(100 * time.Millisecond))
 			n, _, err := conn.ReadFromUDP(buf)
@@ -192,7 +185,7 @@ func RunReceiverWithTimeoutCleanup(cancel context.Context, addr *net.UDPAddr, if
 						if !ok {
 							log.Printf("No handler for type: %s", generic.Type)
 						} else {
-							err := handler(cancel, generic.Payload, multicastaddr)
+							err := handler(generic.Payload, multicastaddr)
 							if err != nil {
 								log.Printf("Handler error: %s", err)
 							}
@@ -207,15 +200,15 @@ func RunReceiverWithTimeoutCleanup(cancel context.Context, addr *net.UDPAddr, if
 	}
 }
 
-func handleHostInfoSend(ctx context.Context, payload json.RawMessage, addr string) error {
+func handleHostInfoSend(payload json.RawMessage, addr string) error {
 	// trigger 기능만 수행
 	log.Println("✅ Received OK message (triggered)")
 
-	go SendWithEnvelope(ctx, addr, 1500, "hostinfo", payload)
+	go SendWithEnvelope(addr, 1500, "hostinfo", payload)
 	return nil
 }
 
-func handleHostInfo(ctx context.Context, payload json.RawMessage, addr string) error {
+func handleHostInfo(payload json.RawMessage, addr string) error {
 	var info HostInfoReceiver
 	if err := json.Unmarshal(payload, &info); err != nil {
 		return fmt.Errorf("failed to decode host info: %w", err)

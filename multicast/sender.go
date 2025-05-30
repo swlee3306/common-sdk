@@ -19,15 +19,15 @@ type MessageEnvelope struct {
 	Payload interface{} `json:"payload"`
 }
 
-func SendWithEnvelope(ctx context.Context, addr string, mtu int, typ string, payload interface{}) error {
-	return RunFragmentedSender(ctx, addr, mtu, MessageEnvelope{
+func SendWithEnvelope(addr string, mtu int, typ string, payload interface{}) error {
+	return RunFragmentedSender(addr, mtu, MessageEnvelope{
 		Type:    typ,
 		Payload: payload,
 	})
 }
 
 // RunFragmentedSenderRequest sends a fragmented request message over UDP using multiple interfaces. (한번만 전송)
-func RunFragmentedSender(ctx context.Context, addr string, mtu int, data any) error {
+func RunFragmentedSender(addr string, mtu int, data any) error {
 	hostname, _ := os.Hostname()
 	msgID := fmt.Sprintf("%s-%s-%d", reflect.TypeOf(data).Name(), hostname, time.Now().UnixNano())
 
@@ -113,9 +113,6 @@ func RunFragmentedSender(ctx context.Context, addr string, mtu int, data any) er
 
 			// 메시지를 한 번만 전송
 			select {
-			case <-ctx.Done():
-				log.Printf("[%s] sender canceled", iface.Name)
-				return
 			default:
 				for i := 0; i < 3; i++ {
 					for _, fragment := range fragments {
@@ -137,7 +134,7 @@ func RunFragmentedSender(ctx context.Context, addr string, mtu int, data any) er
 }
 
 // RunFragmentedSender sends a fragmented message over UDP using multiple interfaces. (반복적으로 전송 특정 초 입력)
-func RunFragmentedSenderCicle(ctx context.Context, addr string, mtu int, data any, second time.Duration) error {
+func RunFragmentedSenderCicle(addr string, mtu int, data any, second time.Duration) error {
 	hostname, _ := os.Hostname()
 	msgID := fmt.Sprintf("%s-%d", hostname, time.Now().UnixNano())
 
@@ -226,9 +223,6 @@ func RunFragmentedSenderCicle(ctx context.Context, addr string, mtu int, data an
 
 			for {
 				select {
-				case <-ctx.Done():
-					log.Printf("[%s] sender stopped", iface.Name)
-					return
 				case <-ticker.C:
 					for _, fragment := range fragments {
 						_, err := p.WriteTo(fragment, nil, udpAddr)
