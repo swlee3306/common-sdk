@@ -222,7 +222,7 @@ func handleHostInfo(ctx context.Context, payload json.RawMessage, addr string) e
 	defer hostDataLock.Unlock()
 
 	existing, found := hostData[info.Hostname]
-	if !found || !equalIPs(existing.IPs, info.IPs) {
+	if !found || !equalIPs(existing.IPs, info.IPs) || existing.Endpoint != info.Endpoint || existing.EndpointPort != info.EndpointPort || existing.Version != info.Version || existing.BuildDate != info.BuildDate || existing.Revision != info.Revision {
 		hostData[info.Hostname] = info
 		log.Printf("📥 Updated host data for %s", info.Hostname)
 	} else {
