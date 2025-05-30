@@ -35,8 +35,13 @@ func Init() {
 	ips := getLocalIPs()
 	hostDataLock.Lock()
 	hostData[hostname] = HostInfoReceiver{
-		Hostname: hostname,
-		IPs:      ips,
+		Version:      "",
+		BuildDate:    "",
+		Revision:     "",
+		Hostname:     hostname,
+		IPs:          ips,
+		Endpoint:     "",
+		EndpointPort: 0,
 	}
 	hostDataLock.Unlock()
 }
