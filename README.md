@@ -35,7 +35,7 @@ Go 언어로 작성된 멀티캐스트 통신을 위한 공통 라이브러리�
 
 ### 1. 저장소 클론
 ```bash
-git clone https://github.com/yourusername/common-sdk.git
+git clone https://github.com/swlee3306/common-sdk.git
 cd common-sdk
 ```
 
@@ -421,9 +421,9 @@ encryption:
 
 ## 📞 지원 및 문의
 
-- 이슈 리포트: [GitHub Issues](https://github.com/yourusername/common-sdk/issues)
-- 이메일: your.email@example.com
-- 문서: [Wiki](https://github.com/yourusername/common-sdk/wiki)
+- 이슈 리포트: [GitHub Issues](https://github.com/swlee3306/common-sdk/issues)
+- 이메일: swlee3306@gmail.com
+- 문서: [Wiki](https://github.com/swlee3306/common-sdk/wiki)
 
 ---
 
