@@ -115,6 +115,10 @@ common-sdk/
 │   └── compression_test.go # 압축 테스트
 ├── encryption/           # 메시지 암호화
 │   └── encryption.go     # AES-256 암호화
+├── multicast/            # 멀티캐스트 통신
+│   ├── receiver.go       # 메시지 수신기
+│   ├── sender.go         # 메시지 송신기
+│   └── type.go           # 공통 데이터 타입
 ├── metrics/              # Prometheus 메트릭
 │   └── metrics.go        # 메트릭 수집 및 노출
 ├── logging/              # 구조화된 로깅
@@ -226,6 +230,28 @@ if err != nil {
     return err
 }
 defer p.Put(conn)
+```
+
+### 6. 멀티캐스트 통신
+```go
+// 멀티캐스트 초기화
+multicast.Init()
+
+// 커스텀 핸들러 등록
+multicast.RegisterHandler("customType", func(payload json.RawMessage, addr string) error {
+    // 커스텀 메시지 처리 로직
+    fmt.Printf("Received message from %s: %s\n", addr, string(payload))
+    return nil
+})
+
+// 멀티캐스트 수신기 시작
+multicast.RunReceivers("224.0.0.1:9999")
+
+// 호스트 정보 조회
+hostData := multicast.GetHostData()
+for hostname, info := range hostData {
+    fmt.Printf("Host: %s, IPs: %v\n", hostname, info.IPs)
+}
 ```
 
 ## 📊 성능 특성
