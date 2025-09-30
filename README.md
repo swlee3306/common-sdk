@@ -49,15 +49,18 @@ go mod tidy
 package main
 
 import (
-    "APITestProgram/chain"
-    "APITestProgram/compression"
-    "APITestProgram/encryption"
-    "APITestProgram/metrics"
-    "APITestProgram/logging"
-    "APITestProgram/health"
-    "APITestProgram/retry"
-    "APITestProgram/pool"
-    "APITestProgram/errors"
+    "fmt"
+    "log"
+    
+    "github.com/swlee3306/common-sdk/compression"
+    "github.com/swlee3306/common-sdk/encryption"
+    "github.com/swlee3306/common-sdk/metrics"
+    "github.com/swlee3306/common-sdk/logging"
+    "github.com/swlee3306/common-sdk/health"
+    "github.com/swlee3306/common-sdk/retry"
+    "github.com/swlee3306/common-sdk/pool"
+    "github.com/swlee3306/common-sdk/errors"
+    "github.com/swlee3306/common-sdk/multicast"
 )
 
 func main() {
@@ -69,16 +72,12 @@ func main() {
     metrics.StartMetricsServer("9090")
     
     // 압축 설정
-    compressor, err := compression.NewCompressor(compression.Gzip)
-    if err != nil {
-        logging.Error("Failed to create compressor:", err)
-        return
-    }
+    compressor := compression.NewCompressor(compression.Gzip)
     
     // 암호화 설정
     key, err := encryption.GenerateRandomKey()
     if err != nil {
-        logging.Error("Failed to generate key:", err)
+        log.Printf("Failed to generate key: %v", err)
         return
     }
     
@@ -88,18 +87,22 @@ func main() {
     // 압축
     compressed, err := compressor.Compress(message)
     if err != nil {
-        logging.Error("Compression failed:", err)
+        log.Printf("Compression failed: %v", err)
         return
     }
     
     // 암호화
     encrypted, err := encryption.Encrypt(compressed, key)
     if err != nil {
-        logging.Error("Encryption failed:", err)
+        log.Printf("Encryption failed: %v", err)
         return
     }
     
-    logging.Info("Message processed successfully")
+    log.Println("Message processed successfully")
+    
+    // 멀티캐스트 사용 예제
+    multicast.Init()
+    multicast.RunReceivers("224.0.0.1:9999")
 }
 ```
 
@@ -136,22 +139,14 @@ common-sdk/
 ### 1. 메시지 압축
 ```go
 // gzip 압축
-gzipCompressor, err := compression.NewCompressor(compression.Gzip)
-if err != nil {
-    return err
-}
-
+gzipCompressor := compression.NewCompressor(compression.Gzip)
 compressed, err := gzipCompressor.Compress(data)
 if err != nil {
     return err
 }
 
 // LZ4 압축
-lz4Compressor, err := compression.NewCompressor(compression.Lz4)
-if err != nil {
-    return err
-}
-
+lz4Compressor := compression.NewCompressor(compression.Lz4)
 compressed, err := lz4Compressor.Compress(data)
 if err != nil {
     return err
@@ -203,7 +198,7 @@ err := retry.Do(func() error {
     retry.WithFactor(2.0),
     retry.WithJitter(0.1),
     retry.WithOnRetry(func(attempt int, err error, delay time.Duration) {
-        logging.Warn("Retry attempt", attempt, "failed:", err, "retrying in", delay)
+        log.Printf("Retry attempt %d failed: %v, retrying in %v", attempt, err, delay)
     }),
 )
 ```
