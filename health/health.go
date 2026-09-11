@@ -44,7 +44,6 @@ func (hc *HealthChecker) AddCheck(name string, checkFunc func() Check) {
 }
 
 func (hc *HealthChecker) GetHealth() HealthCheck {
-	start := time.Now()
 	checks := make(map[string]Check)
 	overallStatus := Healthy
 	
